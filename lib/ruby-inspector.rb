@@ -1,0 +1,1 @@
+require_relative 'ruby-inspector/dynamic/dynamic_inspector'

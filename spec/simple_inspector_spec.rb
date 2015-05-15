@@ -1,11 +1,11 @@
 require 'rspec'
-require_relative '../ruby-inspector/inspector'
+require_relative '../ruby-inspector/static/inspector_ast'
 
 describe 'Simple processed parse trees to inspect' do
   include AST::Sexp
 
   before do
-    @inspector = Inspector.new
+    @inspector = InspectorAST.new
   end
 
   it 'inspect simple method' do
@@ -50,4 +50,18 @@ describe 'Simple processed parse trees to inspect' do
     expect(def_node.body.nodes.length).to eq(2)
   end
 
+  it 'inspect def with begin/rescue' do
+    source = "def another_method(a)
+                  begin
+                    3 - a
+                    45
+                  rescue Exception => e
+                    puts e.message
+                  end
+                  2
+                end"
+    @inspector.analyze source
+    puts p @inspector.raw_ast
+    puts @inspector.processed_ast
+  end
 end

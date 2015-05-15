@@ -1,5 +1,5 @@
 require 'rspec'
-require_relative '../ruby-inspector/inspector'
+require_relative '../ruby-inspector/static/inspector_ast'
 require 'ast/sexp'
 
 describe 'Ruby::AST' do

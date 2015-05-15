@@ -1,60 +1,8 @@
-require 'parser/current'
+require_relative '../common'
+require_relative '../diagnostics'
+require_relative '../parser'
 
-class InspectorException < StandardError
-end
-
-class InspectorParser
-  attr_accessor :ast, :parser, :diagnostics
-
-  def initialize
-    self.reset_inspector
-  end
-
-  def reset_inspector
-    self.diagnostics = []
-    self.parser = Parser::CurrentRuby.new
-  end
-
-  def parse_source(source_code, cleanup= false)
-    begin
-      parser.diagnostics.consumer = lambda do |diagnostic|
-        self.diagnostics << diagnostic
-      end
-
-      buffer = Parser::Source::Buffer.new '(string)'
-      buffer.source = source_code
-
-      self.ast = self.parser.parse buffer
-      self.report_diagnostics
-
-      if cleanup
-        #clean the inspector state
-        self.reset_inspector
-      end
-
-      return self.ast
-
-    rescue Parser::SyntaxError => e
-      raise InspectorException.new e
-    end
-  end
-
-  def report_diagnostics
-    unless self.diagnostics.empty?
-      DiagnosticsReporter.new.report self.diagnostics
-    end
-  end
-end
-
-class DiagnosticsReporter
-  def report(diagnostics)
-    diagnostics.each do |diagnostic|
-      puts diagnostic.render
-    end
-  end
-end
-
-class Inspector
+class InspectorAST
 
   attr_accessor :parser, :raw_ast, :processed_ast
 
@@ -91,6 +39,25 @@ class Inspector
       node.args << self.dispatch_type(arg)
     end
     node
+  end
+
+  def process_kwbegin(ast)
+    block_node = KWBegin.new
+    ast.children.to_a.each do |ast_node|
+      node = self.dispatch_type ast_node
+      block_node.nodes << node
+    end
+    block_node
+  end
+
+  def process_rescue(ast)
+    block_node = RescueBlock.new
+    ast.children.to_a.each do |ast_node|
+
+      node = self.dispatch_type ast_node
+      block_node.nodes << node
+    end
+    block_node
   end
 
   def process_generic_node(ast, node_type)
@@ -165,7 +132,7 @@ class IVasgnNode < BasicNode
 
   def initialize symbol, value_ast
     self.symbol = symbol
-    inner_inspector = Inspector.new
+    inner_inspector = InspectorAST.new
     value_node = inner_inspector.dispatch_type value_ast
     self.value = value_node.value
   end
@@ -204,7 +171,7 @@ class OptArgument < ArgumentNode
 
   def initialize argument_name, value
     super argument_name
-    inner_inspector = Inspector.new
+    inner_inspector = InspectorAST.new
     value_node = inner_inspector.dispatch_type value
     self.default_value = value_node.value
   end
@@ -215,7 +182,7 @@ class SendMessageNode < BasicNode
 
   def initialize emissor_ast, message, receptor_ast
     self.message = message
-    inner_inspector = Inspector.new
+    inner_inspector = InspectorAST.new
     self.emissor = inner_inspector.dispatch_type emissor_ast
     self.receptor = inner_inspector.dispatch_type receptor_ast
   end
@@ -238,4 +205,12 @@ class BlockNode < BasicNode
   def initialize
     self.nodes = []
   end
+end
+
+class KWBegin < BlockNode
+
+end
+
+class RescueBlock < BlockNode
+
 end
