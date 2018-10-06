@@ -1,5 +1,5 @@
-require_relative '../ruby-inspector/inspector'
-require 'rspec'
+require_relative '../lib/ruby-inspector/static/inspector_ast'
+
 
 describe  'Inspector code transformer' do
 

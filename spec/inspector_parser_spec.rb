@@ -1,5 +1,4 @@
-require 'rspec'
-require_relative '../ruby-inspector/static/inspector_ast'
+require_relative '../lib/ruby-inspector/static/inspector_ast'
 require 'ast/sexp'
 
 describe 'Ruby::AST' do
@@ -21,7 +20,7 @@ describe 'Ruby::AST' do
     parser = InspectorParser.new
     ast = parser.parse_source source
     expect(ast).to eq(s(:def, :something, s(:args, s(:arg, :a), s(:arg, :b), s(:optarg, :c, s(:int, 0))), s(:send, s(:lvar, :a), :+, s(:send, s(:lvar, :b), :*, s(:lvar, :c)))))
-    expect(ast.to_s).to eq("(def ...)")
+    expect(ast.to_s).to eq("(def :something\n  (args\n    (arg :a)\n    (arg :b)\n    (optarg :c\n      (int 0)))\n  (send\n    (lvar :a) :+\n    (send\n      (lvar :b) :*\n      (lvar :c))))")
     expect(ast.type).to eq(:def)
   end
 

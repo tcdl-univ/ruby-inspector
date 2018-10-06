@@ -1,5 +1,4 @@
-require 'rspec'
-require_relative '../ruby-inspector/static/inspector_ast'
+require_relative '../lib/ruby-inspector/static/inspector_ast'
 
 describe 'Simple processed parse trees to inspect' do
   include AST::Sexp
